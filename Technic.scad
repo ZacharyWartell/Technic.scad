@@ -572,7 +572,7 @@ module technic_axle_pin(
  * @param vertices *int[]* The number of each hole at which the angle should change.
  * @param axle_holes *int[]* Which holes should be axle holes instead.
  */
-module technic_beam( length = 5, height = 1, angles = [], vertices = [], axle_holes = [], depth = 0 ) {
+module technic_beam( length = 5, height = 1, angles = [], vertices = [], axle_holes = [], depth = 0 , fill_holes = []) {
 	// When making the second part of an angled beam, remap the axle hole locations for that smaller beam.
 	function angled_axle_holes( all_axle_holes, original_vertex ) = [
 		if ( len( all_axle_holes ) > 0 ) for ( i = [ 0 : len( all_axle_holes ) - 1 ] ) if ( all_axle_holes[i] > original_vertex ) all_axle_holes[i] - original_vertex + 1
@@ -627,7 +627,10 @@ module technic_beam( length = 5, height = 1, angles = [], vertices = [], axle_ho
 							// @todo This still leaves a tiny bit of extra material in the axle hole at the vertex of an angled beam (if there is one there).
 							technic_axle_hole( height = height );
 						}
-					} else {
+					} if ( len( search( i, fill_holes ) ) > 0 ) {
+                        technic_pin_connector_filled( length = height );
+                    }
+                    else {
 						technic_pin_connector( length = height );
 					}
 				}
@@ -1367,6 +1370,37 @@ module technic_pin_connector(
 	}
 }
 
+/***
+ * @function technic_pin_connector();
+ * Generate a Technic-compatible pin connector.
+ * @brief Technic, Liftarm Thick 1 x 1 (Spacer)
+ * Origin is centered at the bottom center of the pin connector.
+ *
+ * ![A pin connector compatible with LEGO part #18654.](images/technic_pin_connector.png)
+ *
+ * **Part Support:**
+ * - `part #18654`: technic_pin_connector( length = 1 ); // equivalent to a 1-hole beam
+ * @param length *int* The length of the pin connector in "studs." FWIW, LEGO only makes these in length 1.
+ */
+module technic_pin_connector_filled(
+	length = 1, // The length in studs. An axle of length 2 will be the same length as a 2-stud brick.
+) {
+	translate( [ 0, 0, ( technic_height_in_mm * length ) / 2 ] ) {
+		union() {
+			// The hollow cylinder that forms the outer wall.
+			//difference() {
+			//	cylinder( h = technic_height_in_mm * length, d = technic_pin_connector_outer_diameter, center = true );
+			//	cylinder( h = technic_height_in_mm * length + EXTENSION_FOR_DIFFERENCE, r = ( technic_pin_connector_outer_diameter / 2 ) - technic_pin_connector_shoulder_wall_thickness, center = true );
+			//};
+
+			difference() {
+				cylinder( h = ( technic_height_in_mm * length ), d = technic_pin_connector_outer_diameter, center = true );
+				//cylinder( h = ( technic_height_in_mm * length ) - ( technic_pin_connector_shoulder_depth * 2 ) + EXTENSION_FOR_DIFFERENCE, r = ( technic_hole_diameter / 2 ), center = true );
+			};
+		};
+	}
+}
+
 /**
  * @param float length How long, in Technic units, is the pin half?
  * @param bool friction Whether it should have friction ridges.
@@ -1682,3 +1716,6 @@ module technic_stud_cutouts( height = 1, diameter = stud_diameter ) {
 		}
 	}
 }
+
+translate([0,10,0]) technic_beam( length = 5, height = 1, angles = [], vertices = [], axle_holes = [], depth = 0 , fill_holes = [1,5]);
+technic_pin_connector_filled();
