@@ -1717,5 +1717,10 @@ module technic_stud_cutouts( height = 1, diameter = stud_diameter ) {
 	}
 }
 
-translate([0,10,0]) technic_beam( length = 5, height = 1, angles = [], vertices = [], axle_holes = [], depth = 0 , fill_holes = [1,5]);
-technic_pin_connector_filled();
+module test_zjw()
+{
+    translate([0,10,0]) technic_beam( length = 5, height = 1, angles = [], vertices = [], axle_holes = [], depth = 0 , fill_holes = [1,5]);
+    technic_pin_connector_filled();
+}
+
+//test_zjw();
